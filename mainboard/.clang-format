@@ -1,0 +1,54 @@
+# Common .clang-format for all board and production repos.
+# You may refer to the style options from the official site:
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+---
+# The important stuff:
+BasedOnStyle: Google
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 120
+
+# The not-so-important stuff:
+AlignAfterOpenBracket: Align
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+BreakBeforeBinaryOperators: NonAssignment
+
+AllowAllArgumentsOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+IndentPPDirectives: BeforeHash
+MaxEmptyLinesToKeep: 2
+ReflowComments: true
+SpacesBeforeTrailingComments: 1
+
+IncludeCategories:
+  # Standard headers.
+  - Regex: "<.+>"
+    Priority: 2
+
+  # Other headers.
+  - Regex: ".*"
+    Priority: 1
+
+# C++ Specifics:
+AccessModifierOffset: -4
+AllowShortLambdasOnASingleLine: All
+BreakConstructorInitializers: BeforeComma
+FixNamespaceComments: true
+# BreakBeforeConceptDeclarations: true
+# IndentRequires: true
+NamespaceIndentation: All
+Standard: c++20

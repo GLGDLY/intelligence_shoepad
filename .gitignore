@@ -1,0 +1,11 @@
+.vscode/
+.cache/
+.clangd/
+
+build/
+
+dependencies.lock
+
+sdkconfig
+sdkconfig.*
+!sdkconfig.defaults
