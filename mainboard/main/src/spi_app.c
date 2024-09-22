@@ -2,6 +2,7 @@
 
 #include "MLX90393_cmds.h"
 #include "esp_log.h"
+#include "freertos/projdefs.h"
 #include "globals.h"
 #include "os.h"
 #include "portmacro.h"
@@ -14,14 +15,17 @@
 /* Globals */
 spi_device_handle_t spi;
 SemaphoreHandle_t spi_mux = NULL;
-SemaphoreHandle_t spi_drdy_sem = NULL;
+
+uint32_t dev_ready = 0;
+portMUX_TYPE dev_ready_lock = portMUX_INITIALIZER_UNLOCKED;
 
 mlx90393_data_t mlx90393_data[NUM_OF_SPI_DEV] = {0};
+
+const uint32_t bitfield_all_spi_dev_ready = (1 << NUM_OF_SPI_DEV) - 1;
 
 /* Methods */
 void spi_app_init(void) {
 	spi_mux = xSemaphoreCreateMutex();
-	spi_drdy_sem = xSemaphoreCreateBinary();
 
 	ESP_LOGI(TAG, "Initializing bus SPI%d...", SPI2_HOST + 1);
 
@@ -49,7 +53,7 @@ void spi_app_init(void) {
 	ESP_ERROR_CHECK(ret);
 
 	spi_cs_init();
-	spi_drdy_init(&spi_drdy_sem);
+	spi_drdy_init();
 }
 
 void spi_tx_request(spi_cmd_t* cmd) {
@@ -69,6 +73,20 @@ void spi_tx_request(spi_cmd_t* cmd) {
 	ESP_ERROR_CHECK(ret);
 
 	xSemaphoreGive(spi_mux);
+}
+
+void spi_drdy_intr_handler(void* arg) {
+	taskENTER_CRITICAL_ISR(&dev_ready_lock);
+	dev_ready |= 1 << ((uint64_t)arg);
+	taskEXIT_CRITICAL_ISR(&dev_ready_lock);
+
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	if (dev_ready == bitfield_all_spi_dev_ready) {
+		RtosStaticTask_t spi_app_task;
+		xHigherPriorityTaskWoken = pdTRUE;
+		vTaskNotifyGiveFromISR(spi_app_task.handle, &xHigherPriorityTaskWoken);
+	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 
@@ -93,6 +111,8 @@ void spi_app_thread(void* par) {
 			FOR_EACH_SPI_DEV(i) {
 				if (drdy & (1 << i)) {
 					mlx90393_data[i] = mlx90393_RM_request(i);
+				} else {
+					memset(&mlx90393_data[i], 0, sizeof(mlx90393_data_t));
 				}
 			}
 		}
@@ -105,6 +125,8 @@ void spi_app_thread(void* par) {
 		ESP_LOGI(TAG, "--------------------------------------------");
 		delay(100);
 #endif
-		xSemaphoreTake(spi_drdy_sem, ms_to_ticks(1000));
+
+		// wait for 100ms for all devices to be ready, else timeout and directly request data
+		ulTaskNotifyTake(pdTRUE, ms_to_ticks(100));
 	}
 }

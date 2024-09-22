@@ -11,18 +11,19 @@
 											 StaticTask_t* const pxTaskBuffer)
  */
 
-#define RtosStaticTask_t(size)          \
+#define RtosStaticTaskSized_t(size)     \
 	struct {                            \
-		StackType_t stack_buffer[size]; \
 		const char* const name;         \
 		const uint32_t stack_size;      \
 		TaskFunction_t func;            \
 		StaticTask_t tb;                \
 		TaskHandle_t handle;            \
+		StackType_t stack_buffer[size]; \
 	}
+#define RtosStaticTask_t RtosStaticTaskSized_t()
 
 #define RtosDefineTaskSized(task_to_create, task_func, size) \
-	RtosStaticTask_t(size) task_to_create = {                \
+	RtosStaticTaskSized_t(size) task_to_create = {           \
 		.stack_buffer = {0},                                 \
 		.name = #task_func,                                  \
 		.stack_size = size,                                  \

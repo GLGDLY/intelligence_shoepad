@@ -1,4 +1,4 @@
-menu "Example Configuration"
+menu "Configuration"
 
     config BROKER_URL
         string "Broker URL"
@@ -10,4 +10,11 @@ menu "Example Configuration"
         bool
         default y if BROKER_URL = "FROM_STDIN"
 
+    config FREERTOS_CHECK_STACKOVERFLOW_PTRVAL
+        bool
+        default y
+        help
+            Check for stack overflow by writing a known value to the top of the stack
+            of each task. This is the default behavior.
+    
 endmenu

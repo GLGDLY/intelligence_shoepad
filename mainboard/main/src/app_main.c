@@ -9,7 +9,7 @@
 #include "os.h"
 #include "spi_app.h"
 
-RtosDefineTask(spi_app_task, spi_app_thread);
+RtosDefineTaskSized(spi_app_task, spi_app_thread, 1024);
 
 void app_main(void) {
 	ESP_LOGI(TAG, "[APP] Startup..");

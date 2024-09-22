@@ -50,13 +50,9 @@ void spi_cs(uint8_t dev_id) {
 	}
 }
 
-void spi_drdy_intr_handler(void* arg) {
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR(*(SemaphoreHandle_t*)arg, &xHigherPriorityTaskWoken);
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
+__attribute__((weak)) void spi_drdy_intr_handler(void* arg){};
 
-void spi_drdy_init(SemaphoreHandle_t* sem) {
+void spi_drdy_init(void) {
 	esp_err_t ret;
 
 	gpio_config_t conf = {
@@ -68,18 +64,16 @@ void spi_drdy_init(SemaphoreHandle_t* sem) {
 	ret = gpio_config(&conf);
 	ESP_ERROR_CHECK(ret);
 
-	for (int i = 0; i < NUM_OF_SPI_DEV; i++) {
+	FOR_EACH_SPI_DEV(i) {
 		ret = gpio_install_isr_service(0);
 		ESP_ERROR_CHECK(ret);
-		ret = gpio_isr_handler_add(SPI_DRDY_PINS[i], spi_drdy_intr_handler, (void*)sem);
+		ret = gpio_isr_handler_add(SPI_DRDY_PINS[i], spi_drdy_intr_handler, (void*)(uint64_t)i);
 		ESP_ERROR_CHECK(ret);
 	}
 }
 
 uint32_t spi_drdy_get(void) {
 	uint32_t drdy = 0;
-	for (int i = 0; i < NUM_OF_SPI_DEV; i++) {
-		drdy |= gpio_get_level(SPI_DRDY_PINS[i]) << i;
-	}
+	FOR_EACH_SPI_DEV(i) { drdy |= gpio_get_level(SPI_DRDY_PINS[i]) << i; }
 	return drdy;
 }

@@ -31,7 +31,7 @@ typedef enum {
 #undef X_EXPAND_CS_DECODER_ENUM
 
 /* Defines */
-#define NUM_OF_SPI_DEV 0 SPI_DRDY_TABLE(X_EXPAND_CNT)
+#define NUM_OF_SPI_DEV (0 SPI_DRDY_TABLE(X_EXPAND_CNT))
 
 /* Macros */
 #define FOR_EACH_SPI_CS_BIT(i) for (int i = 0; i < NUM_OF_CS_DEC; i++)
@@ -41,7 +41,7 @@ typedef enum {
 void spi_cs_init(void);
 void spi_cs(uint8_t dev_id);
 
-void spi_drdy_init(SemaphoreHandle_t* sem);
+void spi_drdy_init(void);
 uint32_t spi_drdy_get(void);
 
 #endif // _SPI_GPIO_HELPER_H
