@@ -1,0 +1,3 @@
+[submodule "mainboard"]
+	path = mainboard
+	url = https://github.com/GLGDLY/intelligence_shoepad_mainboard
