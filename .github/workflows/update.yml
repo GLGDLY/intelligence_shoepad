@@ -1,0 +1,28 @@
+on:
+  repository_dispatch:
+    types: [update]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WORKFLOW_PAT }}
+          submodules: true
+
+      - name: Git Submodule Update
+        run: |
+          git pull --recurse-submodules
+          git submodule update --remote --recursive
+
+      - name: Commit
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'bot@noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.WORKFLOW_PAT }}@github.com/${{ github.repository }}
+          git commit -am "Update submodules" && git push || echo "No changes to commit"
